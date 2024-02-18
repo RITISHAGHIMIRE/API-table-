@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+/* @charset "utf-8"; */
+@font-face {  
+font-family: "PreetiNormal";  
+src: url('./PreetiNormal.eot'); /* IE */  
+src: local("./PreetiNormal.ttf"), url('./PreetiNormal.ttf') format("truetype"); /* non-IE */  
+} 
+
+/* body{
+    font-family:PreetiNormal ;
+} */
+input{
+    font-family: PreetiNormal;
+}
+
+ul{
+    list-style: disc !important;
+    text-align: left;
+}
+
+li::marker{
+    color: blue;
+    font-size: 24px;
+}
+
+.MuiTypography-root{
+    font-size: 18px !important;
+    font-weight: 900;
+}
+
+.MuiDialog-root{
+    background-color: rgba(35, 33, 33,.3) !important;
+}
+.MuiBackdrop-root{
+    background-color: rgba(35, 33, 33,.3) !important;
+
+}
