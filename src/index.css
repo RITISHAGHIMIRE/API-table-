@@ -14,9 +14,9 @@ src: local("./PreetiNormal.ttf"), url('./PreetiNormal.ttf') format("truetype"); 
 /* body{
     font-family:PreetiNormal ;
 } */
-input{
+/* input{
     font-family: PreetiNormal;
-}
+} */
 
 ul{
     list-style: disc !important;
@@ -39,4 +39,9 @@ li::marker{
 .MuiBackdrop-root{
     background-color: rgba(35, 33, 33,.3) !important;
 
+}
+
+.MuiPaper-root{
+    width: 100% !important;
+    
 }
