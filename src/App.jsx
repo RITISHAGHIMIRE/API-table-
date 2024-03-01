@@ -8,15 +8,19 @@ import Table from './pagecomponent/Table';
 import Office from './Page/Office';
 import Add from './Course/Add';
 import Log from './Log/Log';
+import Protectedroute from './Hoc/Protectedroute';
 function App() {
  
   return (
    
    <Routes>
+    <Route element={<Protectedroute/>}>
     <Route path='/' element={<Table/>}/>
     <Route path='/:id' element={<Office/>}/>
     <Route path='/Add' element={<Add/>}/>
     <Route path='/Log' element={<Log/>}/>
+    </Route>
+ 
    </Routes>
   )
 }

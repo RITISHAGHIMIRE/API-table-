@@ -1,256 +1,395 @@
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { FaSearch } from "react-icons/fa";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
-import { Button, Select } from "@mui/material";
+import axios from "../Hoc/Axios";
+import React, { useEffect, useRef, useState } from "react";
+import { Link ,useNavigate} from "react-router-dom";
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
 import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import { ErrorMessage, Field, Formik,Form } from "formik";
+import { useQuill } from "react-quilljs";
+import "quill/dist/quill.snow.css";
+import { IoCloudUploadSharp } from "react-icons/io5";
+
 
 function Table() {
-  const [course, setcourse] = useState([]);
-  const [search, setsearch] = useState("");
-  const [open, setOpen] = React.useState(false);
-  const [edit, setEdit] = React.useState(false);
+  const [countries, setCountries] = useState([]);
+  const navigation=useNavigate()
+  const [Search, setSearch] = useState("");
+  const [Deleted, setDeleted] = useState(false);
+  const [Edited, setEdited] = useState(false);
+  const inputRef = useRef(null);
+  const [image, setImage] = useState("");
   const [value, setValue] = useState("");
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  const { quill, quillRef } = useQuill();
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleClickEdit = () => {
-    setEdit(true);
-  };
-  const handleDelete = () => {
-    setEdit(false);
-  };
-  const getdata = () => {
+  const getcountries = () => {
     try {
       axios
-        .get("https://hubmainback.hubit.com.np/courses")
+        .get("/courses")
         .then((res) => {
-          console.log(res);
-          setcourse([...res.data.data]);
+          console.log(res.data);
+         
+          setCountries([...res.data.data]);
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((error) => {
+          console.log(error);
         });
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
     }
   };
+
+  // getcountries();
   useEffect(() => {
-    getdata();
+    getcountries();
   }, []);
-  function filter(options) {
-    return options.filter((option) => {
-      return (
-        option["title"].toLowerCase().indexOf(search.toLowerCase()) > -1 ||
-        option["category"]["name"].toLowerCase().indexOf(search.toLowerCase()) >
-          -1
-      );
-    });
-  }
+
+  const Filter = (val) => {
+    return val.filter(
+      (x) => x["course"].toLowerCase().indexOf(Search.toLowerCase()) > -1
+    );
+  };
+
+  const top100Films = [
+    { label: "The Shawshank Redemption", year: 1994 },
+    { label: "The Godfather", year: 1972 },
+    { label: "The Godfather: Part II", year: 1974 },
+    { label: "The Dark Knight", year: 2008 },
+    { label: "12 Angry Men", year: 1957 },
+    { label: "Schindler's List", year: 1993 },
+    { label: "Pulp Fiction", year: 1994 },
+  ];
+
+  const handleImageClick = () => {
+    inputRef.current.click();
+  };
+
+  const handleImageChange = () => {
+    const file = event.target.files[0];
+    console.log(file);
+    setImage(event.target.files[0]);
+  };
+
   return (
+    
     <div>
-      <div className="  flex justify-end  text-center">
-       <Link to={"/Log"}>
-       <button className=" border-2 h-16 rounded-lg w-40">
-          Log In 
-        </button>
-       </Link>
+ 
+     
+
+
+      {Deleted ? (
+        <div
+          onClick={() => {
+            setDeleted(false);
+          }}
+          className="h-full w-full fixed top-0  right-0 flex items-center justify-center bg-gray-900 bg-opacity-70 left-0"
+        >
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            className="bg-white w-fit h-fit p-10 rounded-md"
+          >
+            Are you sure u wanna die? please nooo😭
+          </div>
+        </div>
+      ) : (
+        " "
+      )}
+ 
+      {Edited ? (
+        <div
+          onClick={() => {
+            setEdited(false);
+          }}
+          className="h-full w-full fixed top-0 right-0 flex items-center justify-center bg-gray-900 bg-opacity-70 left-0"
+        >
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            className="bg-gray-100 h-full w-[1200px] p-10 rounded-md "
+          >
+           <div>
+            <Formik
+                initialValues={{
+                  course: "",
+                  duration: "",
+                  category: "",
+                  instructor: "",
+                  image: "",
+                }}
+                onSubmit={(values, { resetForm }) => {
+                  try {
+                    const formData=new FormData()
+                    formData.append("course",values.course)
+                    formData.append("duration",values.duration)
+                    formData.append("category",values.category)
+                    formData.append("instructor",values.instructor)
+                    formData.append("image",values.image)
+        
+        
+        
+        
+                    axios
+                    .post("/courses",formData)
+                    .then((res) => {
+                      console.log(res.data);
+                      // toast.success("login successful")
+                      // localStorage.setItem("token",res.data.accesstoken)
+                      navigation("/")
+                      setCountries([...res.data.data]);
+                    })
+                    .catch((error) => {
+                      console.log(error);
+                   toast.error(error.response.data.message)
+                    });
+                  } catch (error) {
+                    console.log(error);
+                  }
+              
+                  console.log(values);
+                  // resetForm();
+                }}
+            >
+              {({handleSubmit,setFieldValue,values})=>{
+                return <Form onSubmit={handleSubmit}>
+                   <div>
+
+              
+<div className="text-left bg-white p-4">
+  <div className="text-pink-800 font-bold text-2xl">
+    {" "}
+    Edit Course
+  </div>
+  <div className="text-lg text-gray-700 pt-3 font-normal">
+    Edit the previous details of course and save changes.
+  </div>
+</div>
+
+<div className=" bg-white h-[600px]  p-4 ">
+  <div className=" gap-5 mt-10 flex justify-between">
+    <div className="text-left">
+      <div className="text-lg font-medium text-purple-700 mb-2">
+        Course name
       </div>
-      <div className=" mb-10 flex items-end justify-center ">
-        <Link to={"/Add"}>
-          <button className="text-white capitalize bg-black px-6 py-2 rounded-full text-sm">
-            Add Course
-          </button>
+      <div>
+        <input
+          type="text"
+          label="hehe"
+          className="outline-none h-10 w-[250px] outline-gray-200"
+        />
+      </div>
+    </div>
+
+    <div className="text-left">
+      <div className="text-lg font-medium text-purple-700 mb-2">
+        Duration
+      </div>
+      <div>
+        <input
+          type="text"
+          label="hehe"
+          className="outline-none h-10 w-[250px] outline-gray-200"
+        />
+      </div>
+    </div>
+
+    <div className="text-left">
+      <div className="text-lg font-medium text-purple-700 mb-2">
+        Select Category
+      </div>
+      <div>
+        <Field
+        
+          id="combo-box-demo"
+         
+              label="Movie"
+              className="text-center"
+          
+        />
+      </div>
+    </div>
+
+    <div className="text-left">
+      <div className="text-lg font-medium text-purple-700 mb-2">
+        Instructor
+      </div>
+      <div>
+        <Field
+          
+          id="combo-box-demo"
+         
+              label="Movie"
+              className="text-center"
+          
+        />
+      </div>
+    </div>
+  </div>
+
+  <div className="gap-5 mt-10 flex justify-between">
+  <div className="text-left mt-10">
+    <div className="text-lg font-medium text-purple-700 mb-2">
+      Upload Course Image
+    </div>
+    <div onClick={handleImageClick}>
+      {/* <div className="h-44 w-44  border border-black  text-center items-center text-xl text-gray-400 ">Click to upload</div> */}
+      {image ? (
+        <img src={URL.createObjectURL(image)} alt="" />
+      ) : (
+        <div className="h-48  w-48  border border-black border-dashed flex text-xl flex-col  justify-center text-center items-center text-gray-400 ">
+           <div className="text-5xl"><IoCloudUploadSharp /></div>
+        <div className="">
+                                 
+                                 
+          Click to upload
+        </div>
+        </div>
+      )}
+      <input
+        type="file"
+        ref={inputRef}
+        onChange={handleImageChange}
+        style={{ display: "none" }}
+      />
+    </div>
+  </div>
+
+  <div  className="text-left mt-10">
+    <div className="text-lg font-medium text-purple-700 mb-2">
+      Description
+    </div>
+    <div style={{ width: 850, height:150 }}>
+      <div ref={quillRef} />
+    </div>
+  </div>
+  </div>
+
+  <div className="text-left flex gap-5">
+<button
+type="button"
+className="bg-red-600 h-10 my-14 w-24 text-lg rounded-lg text-center text-white hover:bg-red-500"
+>
+Cancel
+</button>
+
+<button
+type="button"
+className="bg-indigo-600 h-10 my-14 w-24 text-lg rounded-lg text-center text-white hover:bg-indigo-500"
+>
+Update
+</button>
+
+</div>
+</div>
+</div>
+                </Form>
+              }}
+            </Formik>
+           </div>
+          </div>
+          </div>
+       
+      ) : (
+        " "
+      )}
+ 
+ {console.log(countries)}
+ 
+ 
+ <div className="flex items-center text-center flex-row-reverse justify-between">
+ <div className="text-end">
+ <Link to={"/add"}>
+        <button
+          type="button"
+          className="bg-black h-10 my-14 w-24 text-lg rounded-lg text-center text-white hover:bg-gray-700"
+        >
+         Add
+        </button>
         </Link>
       </div>
-      <div className="flex justify-end h-12 mb-4">
-        <div className="flex  border-2 items-center gap-4 justify-end w-fit border-black ">
-          <FaSearch />
-          <input
-            onChange={(e) => {
-              setsearch(e.target.value);
-            }}
-            className="outline-none  flex   border-none"
-            type="text"
-            placeholder="Kei search garnus mahasaye"
-          ></input>
-        </div>
+ 
+      <div className="text-end">
+ 
+        <button
+        onClick={()=>{
+          localStorage.removeItem("token")
+          window.location.reload()
+        }}
+          type="button"
+          className="bg-black h-10 my-14 w-24 text-lg rounded-lg text-center text-white hover:bg-gray-700"
+        >
+         Logout
+        </button>
+       
       </div>
-
-      <table>
+ 
+ 
+      <div className=" border-gray-900 border-2 p-2">
+        <input
+        className="outline-none"
+          type="text"
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
+          placeholder="Search"
+        />
+      </div>
+ </div>
+      <table className="w-full mx-auto border">
         <thead>
-          <tr>
-            <th>S.No</th>
-            <th>Title</th>
-            <th>Duration</th>
-            <th>Instructor</th>
-            <th>Course Category</th>
-            <th>Action</th>
+          <tr className="border bg-blue-500 py-4">
+            <th className="py-4 px-3 capitalize text-white">S.N.</th>
+            <th className="py-4 px-3 capitalize text-white">Title</th>
+            <th className="py-4 px-3 capitalize text-white">Duration</th>
+            <th className="py-4 px-3 capitalize text-white">Instructor</th>
+            <th className="py-4 px-3 capitalize text-white">Course Category</th>
+            <th className="py-4 px-3 capitalize text-white">Action</th>
           </tr>
         </thead>
         <tbody>
-          {filter(course).map((val, i) => {
+          {Filter(countries).map((val, i) => {
             return (
-              <tr className={`${i % 2 !== 0 ? "bg-gray-200" : ""}`}>
-                <td className="px-3 py-3">{i + 1}</td>
-                <td className="px-3 py-3">
-                  <Link
-                    state={{ title: val.title }}
-                    to={{
-                      pathname: `/${val.id}`,
-                      search: val.title,
-                    }}
-                  >
-                    {val?.title}
-                  </Link>
+              <tr className={`${i % 2 != 0 ? "bg-gray-200" : "bg-white"}`}>
+                <td align="center" className="py-4 px-4">
+                  {i + 1}
                 </td>
-                <td className="px-3 py-3">{val?.duration}</td>
-
+                <td align="center" className="py-4 px-4">
+                  <Link to={`/${val.id}`}>{val?.course}</Link>
+                </td>
+                <td align="center" className="py-4 px-4">
+                  {val?.duration}
+                </td>
                 <td className="px-3 py-3">
                   <ol type="1">
-                    {val.instructor.map((item, ind) => {
+                    {/* {val.instructor.map((item, ind) => {
                       return <li>{item.name}</li>;
-                    })}
+                    })} */}
                   </ol>
                 </td>
-
-                <td className="px-3 py-3">{val?.category.name}</td>
+                {/* <td align='center' className='py-4 px-4'>{val?.name}</td> */}
+                <td align="center" className="py-4 px-4">
+                  {/* {val?.category.name} */}
+                </td>
                 <td className="px-3 py-3">
                   <div className="flex gap-4">
-                    <div className="">
-                      <button
-                        onClick={handleClickEdit}
-                        className="text-white capitalize bg-blue-500 px-6 py-2 rounded-full text-sm"
-                      >
-                        edit
-                      </button>
-                      <Dialog
-                        open={edit}
-                        onEdit={handleDelete}
-                        aria-describedby="alert-dialog-slide-description"
-                      >
-                        <div className="px-5 py-2 ">
-                          <div className="text-2xl text-purple-800 font-bold">
-                            {"Edit course"}
-                          </div>
-                          <div className="text-xm font-normal ">
-                            {
-                              "Edit the previous details of course and save changes."
-                            }
-                          </div>
-                        </div>
-                        <DialogContent>
-                          <DialogContentText id="alert-dialog-slide-description">
-                            <div className="flex flex-col gap-9 h-100">
-                              <div className="flex gap-11">
-                                <div className="flex flex-col text-blue-700 text-xl font-medium">
-                                  Course title
-                                  <input
-                                    className="border-2 h-10 w-[260px] px-1 border-gray-400 text-black"
-                                    type="text"
-                                    value="Office package"
-                                  ></input>
-                                </div>
-                                <div className="flex text-blue-700 text-xl w-fit font-medium  flex-col">
-                                  Category
-                                  <select
-                                    className="h-10 w-[250px] border-2  border-gray-400 text-black "
-                                    type="text"
-                                  >
-                                    <option>Office administrative</option>
-                                  </select>
-                                </div>
-                              </div>
-                              <div className="flex gap-11">
-                                <div className="flex  text-blue-700  text-xl font-medium  flex-col">
-                                  Instructor
-                                  <input
-                                    className=" border-2 w-fit h-10 px-1 border-gray-400 text-black"
-                                    type="text"
-                                    value="Kisan mahat "
-                                  ></input>
-                                </div>
-                                <div className="flex text-blue-700 text-xl font-medium  flex-col">
-                                  Duration
-                                  <input
-                                    className="border-2 w-[250px] h-10 px-1 border-gray-400 text-black"
-                                    type="text"
-                                    value="3 months"
-                                  ></input>
-                                </div>
-                              </div>
-                              <div>
-                                <div className="flex flex-col text-blue-700 ">
-                                  {" "}
-                                  Student
-                                  <input
-                                    className="border-2 h-10 w-[260px] border-gray-400 text-black px-2"
-                                    value={"0"}
-                                  ></input>
-                                </div>
-                              </div>
-
-                              <div className=" ">
-                                <label className="text-blue-700">
-                                  Description
-                                </label>
-                                <ReactQuill
-                                  theme="snow"
-                                  value={value}
-                                  onChange={setValue}
-                                  className="h-44 "
-                                />
-                              </div>
-                            </div>
-                          </DialogContentText>
-                        </DialogContent>
-                        <DialogActions>
-                          <Button onClick={handleDelete}>Cancel</Button>
-                          <Button onClick={handleDelete}>Update</Button>
-                        </DialogActions>
-                      </Dialog>
-                    </div>
                     <button
-                      onClick={handleClickOpen}
-                      className="text-white capitalize bg-red-500 px-6 py-2 rounded-full text-sm"
+                      onClick={() => {
+                        setEdited((prev) => !prev);
+                      }}
+                      className="text-white capitalize bg-blue-400 px-6 py-2 rounded-full text-sm"
+                    >
+                      edit
+                    </button>
+ 
+                    <button
+                      onClick={() => {
+                        setDeleted((prev) => !prev);
+                      }}
+                      className="text-white capitalize bg-red-400 px-6 py-2 rounded-full text-sm"
                     >
                       delete
                     </button>
-                    <Dialog
-                      open={open}
-                      onClose={handleClose}
-                      aria-labelledby="alert-dialog-title"
-                      aria-describedby="alert-dialog-description"
-                    >
-                      <DialogTitle id="alert-dialog-title">
-                        {
-                          "Are you sure ..you wanna die...noooooooooo..stop.....ittttttt..plzzzzzzzz 😭 hi myself ritisha if u wanna die just die"
-                        }
-                      </DialogTitle>
-                      <DialogContent>
-                        <DialogContentText id="alert-dialog-description">
-                          {/* Let Google help apps determine location. This means sending anonymous
-            location data to Google, even when no apps are running. */}
-                        </DialogContentText>
-                      </DialogContent>
-                      <DialogActions>
-                        <Button onClick={handleClose}>Disagree</Button>
-                        <Button onClick={handleClose} autoFocus>
-                          Agree
-                        </Button>
-                      </DialogActions>
-                    </Dialog>
                   </div>
                 </td>
               </tr>
@@ -258,7 +397,10 @@ function Table() {
           })}
         </tbody>
       </table>
+   
+  
     </div>
+ 
   );
 }
 

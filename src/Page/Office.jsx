@@ -20,7 +20,7 @@ function Office() {
   const getdata = (id) => {
     try {
       axios
-        .get(`https://hubmainback.hubit.com.np/courses/${id}`)
+        .get(`/courses/${id}`)
         .then((res) => {
           console.log(res);
           setcourse([res.data]);
