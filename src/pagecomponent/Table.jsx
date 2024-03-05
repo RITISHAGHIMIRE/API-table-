@@ -28,7 +28,7 @@ function Table() {
         .then((res) => {
           console.log(res.data);
          
-          setCountries([...res.data.data]);
+          setCountries([...res.data.result]);
         })
         .catch((error) => {
           console.log(error);
